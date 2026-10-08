@@ -1,0 +1,54 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DoorOAN</title><style>body{font:17px Arial,sans-serif;max-width:960px;margin:0 auto;padding:48px 24px;background:white;color:#333;text-align:center;line-height:1.65}h1{font-size:38px;font-weight:300;line-height:1.25;margin:0 auto 28px;max-width:850px}img{max-width:100%;height:auto;display:block;margin:0 auto}#state{display:inline-block;margin:0 0 24px;padding:3px 22px;border-radius:6px;background:#eef2f4}#state[data-state="abierta"]{background:#fce6e3;color:#a72d20}#state[data-state="cerrada"]{background:#e6f2e9;color:#28613c}.caption{font-size:15px;margin:14px 0 25px}button{font:13px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;border:1px solid #bbb;border-radius:28px;padding:15px 30px;background:white;cursor:pointer;margin:8px}button:disabled{opacity:.5;cursor:wait}input{font:inherit;padding:10px;margin:5px;max-width:85%}#command-message{display:block;font-size:14px}details{margin:18px auto;max-width:500px}summary{cursor:pointer;font-size:14px;color:#666}.alarm-note{font-size:13px;color:#777}@media(max-width:600px){body{padding:28px 16px}h1{font-size:27px}}footer{margin-top:32px;padding-top:16px;border-top:1px solid #cbd5df;font-size:14px;color:#526475;text-align:center}</style><p class="alarm-note">Vista previa · estado y botón simulados</p><h1>Sistema de Apertura y Cierre de Puerta Principal OAN-SPM</h1><p id="state">Leyendo puerta…</p><img id="camera" alt="Webcam OAN" src="http://132.248.4.207/cgi-bin/viewer/video.jpg"><p class="caption">Imagen en tiempo real de la puerta de acceso del OAN-SPM</p><form id="command" method="post" action="#"><input type="hidden" name="csrf" value="8509edf02e00acbae58e215579a64314c9b0a58298f056c8"><button id="command-button">Abrir / cerrar</button><span id="command-message"></span></form><section style="margin:28px auto;font-size:16px">
+<a href="https://time.is/Ensenada" rel="nofollow">Hora local en Ensenada:</a><br>
+<span id="Ensenada_z189"></span>
+<noscript>Activa JavaScript para mostrar la hora y los datos solares.</noscript>
+<script>
+(function(){
+  const zone='America/Tijuana', target=document.getElementById('Ensenada_z189');
+  try {
+    const clock=new Intl.DateTimeFormat('es-MX',{timeZone:zone,hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+    const date=new Intl.DateTimeFormat('es-MX',{timeZone:zone,weekday:'long',day:'numeric',month:'numeric',year:'numeric'});
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'numeric',day:'numeric'});
+    const solarTime=new Intl.DateTimeFormat('es-MX',{timeZone:zone,hour:'2-digit',minute:'2-digit',hour12:false});
+    let lastDay='', solar='';
+    function update(){
+      const now=new Date(), fields={};
+      parts.formatToParts(now).forEach(p=>{fields[p.type]=p.value;});
+      const y=Number(fields.year), m=Number(fields.month), d=Number(fields.day), key=y+'-'+m+'-'+d;
+      if(key!==lastDay){
+        const base=Date.UTC(y,m-1,d), day=(base-Date.UTC(y,0,0))/86400000;
+        const leap=y%4===0&&(y%100!==0||y%400===0);
+        const g=2*Math.PI/(leap?366:365)*(day-1), rad=Math.PI/180;
+        const eq=229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+        const dec=0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+        const lat=31.87149*rad, lon=-116.60071;
+        const ha=Math.acos(Math.cos(90.833*rad)/(Math.cos(lat)*Math.cos(dec))-Math.tan(lat)*Math.tan(dec))/rad;
+        const noon=720-4*lon-eq;
+        solar='Salida del Sol: '+solarTime.format(new Date(base+(noon-4*ha)*60000))+' · Puesta del Sol: '+solarTime.format(new Date(base+(noon+4*ha)*60000));
+        lastDay=key;
+      }
+      target.replaceChildren(document.createTextNode(clock.format(now)),document.createElement('br'),document.createTextNode(date.format(now)),document.createElement('br'),document.createTextNode(solar));
+      target.title='Horarios solares aproximados para Ensenada. Hora basada en el reloj de este dispositivo.';
+    }
+    update(); setInterval(update,1000);
+  } catch(error){target.textContent='No se pudo calcular la hora; consulta el enlace de Ensenada.';}
+})();
+</script>
+</section><details><summary>Opciones de sonido</summary><label><input id="alarm-enabled" type="checkbox" checked> Alarma sonora habilitada</label><p id="alarm-note" class="alarm-note">Si el navegador bloquea el audio, toca la página para permitirlo.</p></details><script>
+let audio=null, opened=false,alarmEnabled=true;
+try{alarmEnabled=localStorage.getItem('door-alarm')!=='off';}catch(e){}
+const alarmCheck=document.getElementById('alarm-enabled'),alarmNote=document.getElementById('alarm-note');
+alarmCheck.checked=alarmEnabled;
+async function unlockAudio(){if(!alarmEnabled)return;try{if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();await audio.resume();alarmNote.textContent=audio.state==='running'?'Alarma lista. Sonará cuando la puerta esté abierta.':'Toca la página para permitir el sonido.';}catch(e){alarmNote.textContent='Audio no disponible en este navegador.';}}
+document.addEventListener('pointerdown',unlockAudio);
+document.addEventListener('keydown',unlockAudio);
+alarmCheck.onchange=()=>{alarmEnabled=alarmCheck.checked;try{localStorage.setItem('door-alarm',alarmEnabled?'on':'off');}catch(e){}if(alarmEnabled)unlockAudio();else alarmNote.textContent='Alarma silenciada en este navegador.';};
+if(alarmEnabled)unlockAudio();else alarmNote.textContent='Alarma silenciada en este navegador.';
+let command=document.getElementById('command');
+if(command)command.addEventListener('submit',async event=>{event.preventDefault();let button=document.getElementById('command-button'),message=document.getElementById('command-message');button.disabled=true;message.textContent='Ejecutando (simulación)…';try{await new Promise(resolve=>setTimeout(resolve,4000));opened=!opened;let r={ok:true};message.textContent=r.ok?'Instrucción terminada.':(r.status===503?'Cola llena; intenta más tarde.':r.status===403?'Acceso vencido; recarga la página.':'Error al ejecutar la instrucción.');}catch(e){message.textContent='Sin respuesta. Comprueba la puerta antes de repetir.';}finally{button.disabled=false;update();}});
+async function update(){try{let s={estado:opened?'abierta':'cerrada',activando:false};opened=s.estado==='abierta';let state=document.getElementById('state');state.dataset.state=s.estado;state.textContent='Puerta '+s.estado+(s.activando?' — relé activo':'');}catch(e){opened=false;let state=document.getElementById('state');state.dataset.state='desconocida';state.textContent='Sin comunicación';}}
+setInterval(()=>{if(alarmEnabled&&audio&&audio.state==='running'&&opened){let o=audio.createOscillator(),g=audio.createGain();g.gain.value=0.08;o.connect(g);g.connect(audio.destination);o.frequency.value=880;o.start();o.stop(audio.currentTime+0.2);}},2000);
+setInterval(update,1500);update();
+
+setInterval(()=>{let i=document.getElementById('camera');i.src=i.src.split('?')[0]+'?t='+Date.now();},5000);
+</script><footer>DoorOAN · Edgar Omar Cadena Zepeda · IA-UNAM-ENS</footer></html>
