@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DoorOAN</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<h1>Sistema de Apertura y Cierre de Puerta Principal OAN-SPM</h1>
+<p id="state">Leyendo puerta…</p>
+<img id="camera" alt="Webcam OAN">
+<p class="caption">Imagen en tiempo real de la puerta de acceso del OAN-SPM</p>
+<form id="command" method="post" action="/openclose" hidden>
+<input type="hidden" name="csrf" value="">
+<button id="command-button">Abrir / cerrar</button>
+</form>
+<span id="command-message"></span>
+<form id="logout" method="post" action="/logoutuser" hidden>
+<input type="hidden" name="csrf" value=""><button>Cerrar sesión</button>
+</form>
+<form id="login" method="post" action="/loginuser" hidden>
+<input name="username" placeholder="Usuario" required>
+<input type="password" name="password" placeholder="Contraseña" required><button>Entrar</button>
+</form>
+<section style="margin:28px auto;font-size:16px">
+<a href="https://time.is/Ensenada" rel="nofollow">Hora local en Ensenada:</a><br>
+<span id="Ensenada_z189"></span>
+<noscript>Activa JavaScript para mostrar la hora y los datos solares.</noscript>
+
+</section>
+<details><summary>Opciones de sonido</summary>
+<label><input id="alarm-enabled" type="checkbox" checked> Alarma sonora habilitada</label>
+<p id="alarm-note" class="alarm-note">Si el navegador bloquea la reproducción automática, toca la página para permitirlo.</p>
+</details>
+<noscript>Activa JavaScript para consultar el estado y usar el mando.</noscript>
+<footer>DoorOAN · 2026 · <a href="mailto:cadena@astro.unam.mx">Edgar Omar Cadena Zepeda</a> · IA-UNAM-ENS</footer>
+</body>
+</html>
